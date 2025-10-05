@@ -1,74 +1,64 @@
-let button = document.getElementById("button");
-let message = document.getElementById("message");
-let again = document.getElementById("again");
+const board = document.getElementById("board");
+const squares = [];
+let lastPiece = null;
+let lastSquare = null;
+let piece;
+let square;
 
-let timer = 5;
-let score = 0;
-let best = 0;
-let clickable = true;
-let clickedOnce = false;
-let interval = null;
-let timeout = null;
+let position = [
+	["br", "bk", "be", "bK", "bq", "be", "bk", "br"],
+	["bp", "bp", "bp", "bp", "bp", "bp", "bp", "bp"],
+	["", "", "", "", "", "", "", ""],
+	["", "", "", "", "", "", "", ""],
+	["", "", "", "", "", "", "", ""],
+	["", "", "", "", "", "", "", ""],
+	["p", "p", "p", "p", "p", "p", "p", "p"],
+	["r", "k", "e", "q", "K", "e", "k", "r"],
+]
 
-function clearTimers(){
-	clearInterval(interval);
-	clearTimeout(timeout);
-	interval = null;
-	timeout = null;
-};
-function tryAgain(){
-	clearTimers();
-	again.hidden = true;
-	message.innerHTML = "Click!";
-	clickable = true;
-	clickedOnce = false;
-	button.style.cursor = "";
-	score = 0;
-	document.getElementById("timer").innerHTML = timer = 5;
-	document.getElementById("score").innerHTML = "00";
-};
-function checkBest(){
-	if(score > best){
-		best = score;
-		score < 10
-			? document.getElementById("best").innerHTML = `0${best}`
-			: document.getElementById("best").innerHTML = best
-	};
-};
+board.addEventListener("mousedown", mousedown);
+board.addEventListener("contextmenu", event => event.preventDefault());
 
-button.addEventListener("click", click);
+for(let i = 0; i < 8; i++){
+	for(let j = 0; j < 8; j++){
+		square = document.createElement("div");
+		square.classList.add("square");
+		if((i + j) % 2 !== 0){
+			square.classList.add("dark");
+		}
+		square.textContent = position[i][j];
+		if(position[i][j].includes("b")){
+			square.classList.add("black");
+			square.classList.add("opp");
+		}
+		squares.push(square);
+		board.appendChild(square);
+	}
+}
+squares[36].innerHTML = "";
 
-function click(){
-	if (clickable === true){
-		if (!clickedOnce){
-			clickedOnce = true;
-			clearTimers();
-			interval = setInterval(() => {
-				if (timer > 0){
-					document.getElementById("timer").innerHTML = --timer;
-					// message.style.color = "#ff0080";
-				};
-			}, 1000);
-			timeout = setTimeout(() => {
-				clickable = false;
-				score === 1
-					? message.innerHTML = `You have clicked ${score} time!`
-					: message.innerHTML = `You have clicked ${score} times!`;
-				checkBest();
-				again.hidden = false;
-				button.style.cursor = "auto";
-				// message.style.color = "";
-			}, 5000);
-		};
-		score < 9
-			? document.getElementById("score").innerHTML = `0${++score}`
-			: document.getElementById("score").innerHTML = ++score
-	};
-};
-again.addEventListener("click", tryAgain);
-document.addEventListener("keydown", (e) => {
-	e.code === "Space" ? tryAgain() : null;
-});
-document.addEventListener("keydown", (e) => {
-	e.code === "KeyP" ? click() : null;
-});
+function mousedown(event){
+	let square = event.target;
+	if(!square.classList.contains("square")) return;
+	if(square.textContent !== "" && !lastPiece){
+		lastPiece = square.textContent;
+		lastSquare = square;
+		square.classList.add("selected");
+	}
+	else if((square.textContent === "" || square.classList.contains("opp") !== lastSquare.classList.contains("opp")) && lastPiece){
+		square.classList.remove("black", "opp");
+		square.textContent = lastPiece;
+		if(lastPiece.includes("b")) square.classList.add("black", "opp");
+		lastPiece = null;
+		if(lastSquare){
+			lastSquare.textContent = "";
+			lastSquare.classList.remove("selected", "black", "opp");
+			lastSquare = null;
+		}
+	}
+	else{
+		if(lastSquare) lastSquare.classList.remove("selected");
+		lastPiece = null;
+		lastSquare = null;
+	}
+}
