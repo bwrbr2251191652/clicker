@@ -1,64 +1,81 @@
-const board = document.getElementById("board");
-const squares = [];
-let lastPiece = null;
-let lastSquare = null;
-let piece;
-let square;
+let button = document.getElementById("button");
+let message = document.getElementById("message");
+let again = document.getElementById("again");
+let area = document.getElementById("area");
 
-let position = [
-	["br", "bk", "be", "bK", "bq", "be", "bk", "br"],
-	["bp", "bp", "bp", "bp", "bp", "bp", "bp", "bp"],
-	["", "", "", "", "", "", "", ""],
-	["", "", "", "", "", "", "", ""],
-	["", "", "", "", "", "", "", ""],
-	["", "", "", "", "", "", "", ""],
-	["p", "p", "p", "p", "p", "p", "p", "p"],
-	["r", "k", "e", "q", "K", "e", "k", "r"],
-]
+let timer = 5;
+let score = 0;
+let best = 0;
+let clickable = true;
+let clickedOnce = false;
+let interval = null;
+let timeout = null;
 
-board.addEventListener("mousedown", mousedown);
-board.addEventListener("contextmenu", event => event.preventDefault());
+function clearTimers(){
+	clearInterval(interval);
+	clearTimeout(timeout);
+	interval = null;
+	timeout = null;
+};
+function tryAgain(){
+	clearTimers();
+	again.hidden = true;
+	message.innerHTML = "Click!";
+	clickable = true;
+	clickedOnce = false;
+	button.style.cursor = "";
+	score = 0;
+	area.style.backgroundColor = "";
+	document.getElementById("timer").innerHTML = timer = 5;
+	document.getElementById("score").innerHTML = "00";
+};
+function checkBest(){
+	if(score > best){
+		best = score;
+		document.getElementById("best").innerHTML = String(best).padStart(2, "0");
+	};
+};
+function click(){
+	if (clickable){
+		if (!clickedOnce){
+			clickedOnce = true;
+			clearTimers();
+			interval = setInterval(() => {
+				if (timer > 0){
+					document.getElementById("timer").innerHTML = --timer;
+				};
+			}, 1000);
+			timeout = setTimeout(() => {
+				clickable = false;
+				score === 1
+					? message.innerHTML = `You have clicked ${score} time!`
+					: message.innerHTML = `You have clicked ${score} times!`;
+				checkBest();
+				again.hidden = false;
+				button.style.cursor = "auto";
+			}, 5000);
+		};
+		document.getElementById("score").innerHTML = String(++score).padStart(2, "0");
+		let colors = {
+			10: "#80c0c0",
+			20: "#80c080",
+			30: "#c080c0",
+			40: "#c08080",
+			50: "#8080c0"
+		};
+		if (colors[score]){
+			area.style.backgroundColor = colors[score];
+		};
+	};
+};
 
-for(let i = 0; i < 8; i++){
-	for(let j = 0; j < 8; j++){
-		square = document.createElement("div");
-		square.classList.add("square");
-		if((i + j) % 2 !== 0){
-			square.classList.add("dark");
-		}
-		square.textContent = position[i][j];
-		if(position[i][j].includes("b")){
-			square.classList.add("black");
-			square.classList.add("opp");
-		}
-		squares.push(square);
-		board.appendChild(square);
-	}
-}
-squares[36].innerHTML = "";
+button.addEventListener("click", click);
+again.addEventListener("click", tryAgain);
 
-function mousedown(event){
-	let square = event.target;
-	if(!square.classList.contains("square")) return;
-	if(square.textContent !== "" && !lastPiece){
-		lastPiece = square.textContent;
-		lastSquare = square;
-		square.classList.add("selected");
-	}
-	else if((square.textContent === "" || square.classList.contains("opp") !== lastSquare.classList.contains("opp")) && lastPiece){
-		square.classList.remove("black", "opp");
-		square.textContent = lastPiece;
-		if(lastPiece.includes("b")) square.classList.add("black", "opp");
-		lastPiece = null;
-		if(lastSquare){
-			lastSquare.textContent = "";
-			lastSquare.classList.remove("selected", "black", "opp");
-			lastSquare = null;
-		}
-	}
-	else{
-		if(lastSquare) lastSquare.classList.remove("selected");
-		lastPiece = null;
-		lastSquare = null;
-	}
-}
+document.addEventListener("keydown", (e) => {
+	if (e.code === "Space") tryAgain();
+	if (e.code === "KeyP") click();
+});
+
+//let x = 36;
+console.log(0.3 + 0.6 == 0.8999999999999999);
